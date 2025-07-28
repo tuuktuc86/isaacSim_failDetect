@@ -529,7 +529,7 @@ def main():
     grasp_model.eval()
 
     # CLIP 모델 로드
-    clip_model, preprocess = clip.load("ViT-B/32", device='cpu')
+    #clip_model, preprocess = clip.load("ViT-B/32", device='cpu')
 
     print("[INFO]: Setup complete...")
 
@@ -555,7 +555,7 @@ def main():
             
             for env_num in range(num_envs):
                 rgb_image = camera.get_rgba() # (H, W, 3)
-                print(rgb_image.shape)
+                #print(rgb_image.shape)
                 if rgb_image.shape[0] != 0:
                     rgb = rgb_image[:, :, :3]
 
@@ -564,8 +564,8 @@ def main():
 
                     # RGB → BGR 변환 (OpenCV 저장용)
                     bgr = cv2.cvtColor(rgb_uint8, cv2.COLOR_RGB2BGR)
-                    cv2.imwrite("camera_rgb_image.png", bgr)
-                    print("Saved RGB image to camera_rgb_image.png")
+                    #cv2.imwrite("camera_rgb_image.png", bgr)
+                    #print("Saved RGB image to camera_rgb_image.png")
                # RGB 채널만 추출
                 
 
@@ -697,10 +697,10 @@ def main():
                             axes = axes.flatten()
 
                         # 첫번째 subplot에 final_result 이미지 표시
-                        final_result_rgb = cv2.cvtColor(final_result, cv2.COLOR_BGR2RGB)
-                        axes[0].imshow(final_result_rgb)
-                        axes[0].set_title('Robot View with Detections')
-                        axes[0].axis('off')
+                        # final_result_rgb = cv2.cvtColor(final_result, cv2.COLOR_BGR2RGB)
+                        # axes[0].imshow(final_result_rgb)
+                        # axes[0].set_title('Robot View with Detections')
+                        # axes[0].axis('off')
 
                         # 두번째 subplot부터 crop된 이미지들 표시
                         valid_preds_count = 0
@@ -736,23 +736,24 @@ def main():
                     # 각 crop image 별 input text와의 유사도 저장
                     probs =  []
                     # user_text = input("잡을 물체에 대한 텍스트를 영어로 입력하세요... ")
-                    print("잡을 물체에 대한 텍스트를 영어로 입력하세요... ")
-                    user_text = sys.stdin.readline().strip()
+                    #print("잡을 물체에 대한 텍스트를 영어로 입력하세요... ")
+                    #user_text = sys.stdin.readline().strip()
                     for crop_image in crop_images:
                         # text를 deep learning 모델에 넣기 위해 token으로 변환
-                        text = clip.tokenize([user_text]).to(device)
+                        #text = clip.tokenize([user_text]).to(device)
                         
                         # image를 clip model의 input size로 변환
                         crop_image = CLIP_transform(crop_image, 224)
                         crop_image = crop_image.unsqueeze(0)
                         
                         # CLIP 모델 추론  및 유사도 저장 (현장 강의 컴퓨터 메모리 문제로 cpu 연산)
-                        with torch.no_grad():
-                            logits_per_image, logits_per_text = clip_model(crop_image.cpu(), text.cpu())
-                            probs.append(logits_per_image.cpu().numpy())
+                        # with torch.no_grad():
+                        #     logits_per_image, logits_per_text = clip_model(crop_image.cpu(), text.cpu())
+                        #     probs.append(logits_per_image.cpu().numpy())
                             
                     # crop image 중에서 input text와 가장 유사도가 큰 이미지 선택
-                    target_obj_idx = np.argmax(np.array(probs))
+                    #target_obj_idx = np.argmax(np.array(probs))
+                    target_obj_idx=0
                     target_obj_bbox = bboxes[target_obj_idx]
                     target_image = crop_images[target_obj_idx].permute(1, 2, 0).cpu().numpy()
                     
@@ -760,7 +761,7 @@ def main():
                     target_image = cv2.cvtColor(target_image, cv2.COLOR_BGR2RGB)
                     
                     # CLIP model 결과 cv2로 저장
-                    cv2.imwrite(f'data/CLIP_result_{user_text}.png', target_image)
+                    #cv2.imwrite(f'data/CLIP_result_{user_text}.png', target_image)
 
             ####################################################################################
 
@@ -787,9 +788,9 @@ def main():
                         pc = pc[pc[:, 2] > 0.4]  # z
                         
                         # target object의 3d point cloud 시각화
-                        pc_o3d = o3d.geometry.PointCloud()
-                        pc_o3d.points = o3d.utility.Vector3dVector(pc)
-                        o3d.visualization.draw_geometries([pc_o3d])
+                        # pc_o3d = o3d.geometry.PointCloud()
+                        # pc_o3d.points = o3d.utility.Vector3dVector(pc)
+                        #o3d.visualization.draw_geometries([pc_o3d])
                         
                         # Contact-GraspNet 모델 추론
                         rot_ee, trans_ee, width = inference_cgnet(pc, grasp_model, device, hand_pose_w, env)
@@ -832,8 +833,7 @@ def main():
                 robot_data=robot_data,
             )
             
-            #print("grasp_pose = ", grasp_pose)
-            print("actions = ", actions)
+            
             # 환경에 대한 액션을 실행
             obs, rewards, terminated, truncated, info = env.step(actions)
             robotstate = torch.cat([ee_pose, torch.tensor(obs["policy"][0, 7:9].tolist(), device=ee_pose.device).unsqueeze(0)], dim=-1)
@@ -843,17 +843,18 @@ def main():
             
             # 시뮬레이션 종료 여부 체크
             dones = terminated | truncated
-            print("dones = ", dones)
+            #print("dones = ", dones)
             if dones:
-                total_reward=0
+                #total_reward=0
                 if terminated:
                     print("Episode terminated")
                 else:
                     print("Episode truncated")
                 # 환경 종료 및 시뮬레이션 종료
-                env.close()
-                simulation_app.close()
+                # env.close()
+                # simulation_app.close()
 
 # 메인 함수 실행
 if __name__ == "__main__":
-    main()
+    for i in range(3):
+        main()
