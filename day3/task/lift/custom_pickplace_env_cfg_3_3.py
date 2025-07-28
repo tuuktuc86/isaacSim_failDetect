@@ -15,6 +15,7 @@ from isaaclab.managers import ObservationTermCfg as ObsTerm
 from isaaclab.managers import RewardTermCfg as RewTerm
 from isaaclab.managers import SceneEntityCfg
 from isaaclab.managers import TerminationTermCfg as DoneTerm
+
 from isaaclab.scene import InteractiveSceneCfg
 from isaaclab.sensors.camera.camera_cfg import CameraCfg
 from isaaclab.sensors.frame_transformer.frame_transformer_cfg import FrameTransformerCfg
@@ -236,6 +237,11 @@ class TerminationsCfg:
     # 모든 물체가 원하는 지점에 들어왔을때, 에피소드 종료
     object_reach_goal = DoneTerm(func=mdp.object_pickplace_goal)
 
+# @configclass
+# class TruncationsCfg:
+#     """에피소드 Truncation 설정"""
+
+#     time_out = TruncationTermCfg(func=mdp.time_out)
 
 @configclass
 class CurriculumCfg:
@@ -255,6 +261,7 @@ class YCBPickPlaceEnvCfg(ManagerBasedRLEnvCfg):
     actions: ActionsCfg = ActionsCfg()
     observations: ObservationsCfg = ObservationsCfg()
     rewards: RewardsCfg = RewardsCfg()
+    #truncations: TruncationsCfg = TruncationsCfg()
     # commands: CommandsCfg = CommandsCfg()  # 필요시 사용
     # curriculum: CurriculumCfg = CurriculumCfg()  # 필요시 사용
 

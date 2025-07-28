@@ -83,3 +83,11 @@ def object_pickplace_goal(
 
     # 종료 상태 리스트를 PyTorch 텐서로 변환하여 반환합니다.
     return torch.tensor(dones, device=bin.data.root_pos_w.device)
+
+# def time_out(env: ManagerBasedRLEnv) -> torch.Tensor:
+#     """에피소드가 시간 초과되었는지를 판단하는 함수.
+
+#     Isaac Lab의 env.episode_step_index는 현재 timestep을 추적하고 있음.
+#     """
+#     # 최대 허용 스텝 수 (초기화에서 episode_length_s, sim.dt, decimation 으로 설정됨)
+#     return env.episode_step_index >= env.max_episode_length

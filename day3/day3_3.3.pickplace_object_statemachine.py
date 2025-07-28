@@ -840,7 +840,8 @@ def main():
             #print(robotstate.shape)
             # print("reward = ", rewards)
             # print("total = ", total_reward)
-            
+            print(env.env.common_step_counter)
+            #print("env.episode_step_index = ", env.episode_step_index)
             # 시뮬레이션 종료 여부 체크
             dones = terminated | truncated
             #print("dones = ", dones)
@@ -851,7 +852,8 @@ def main():
                 else:
                     print("Episode truncated")
                 # 환경 종료 및 시뮬레이션 종료
-                # env.close()
+                env.close()
+                return
                 # simulation_app.close()
 
 # 메인 함수 실행
