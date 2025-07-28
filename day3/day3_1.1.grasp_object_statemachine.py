@@ -269,7 +269,11 @@ def main():
     env = gym.make("Isaac-Lift-Cube-Franka-Custom-v0", cfg=env_cfg)
     env.reset()
     print(f"Environment reset. Number of environments: {env.unwrapped.num_envs}")
-    
+    print("***************************aaa")
+    #print(env.scene["robot"].get_articulation_view().body_names)
+
+
+
     # 환경 관측 카메라 시점 셋팅
     env.unwrapped.sim.set_camera_view(eye=[1.5, 1.5, 1.5], target=[0.0, 0.0, 0.5])
     
@@ -308,6 +312,7 @@ def main():
     init_ee_pose = pick_and_place_sm.ready_pose
     init_gripper_state = torch.tensor([GripperState.CLOSE], device=device).repeat(num_envs, 1)  # 그리퍼를 CLOSE 상태로 초기화
     actions = torch.cat([init_ee_pose, init_gripper_state], dim=-1)
+    total_reward = 0
     # 시뮬레이션 루프
     while simulation_app.is_running():
         # 모델 추론 상태 - 학습 연산 비활성화
@@ -413,14 +418,25 @@ def main():
                 pregrasp_pose=pick_and_place_sm.pregrasp_pose,
                 robot_data=robot_data,
             )
-
+            
             # 환경에 대한 액션을 실행 (환경에서 상태를 업데이트)
             obs, rewards, terminated, truncated, info = env.step(actions)
-
+            #print("obs = ", obs)
+            # print("actions = ", actions)
+            #print("action:", obs["policy"][0, -8:].tolist())
+           # print("pos번째:", obs["policy"][0, 7:9].tolist())
+            #print("vel번째:", obs["policy"][0, 16:18].tolist())
             # 시뮬레이션 종료 여부 체크
+            robotstate = torch.cat([ee_pose, torch.tensor(obs["policy"][0, 7:9].tolist(), device=ee_pose.device).unsqueeze(0)], dim=-1)
+           # print(robotstate.shape)
             dones = terminated | truncated
+            total_reward+=rewards
+            print("reward = ", rewards)
+            print("total = ", total_reward)
+            
             if dones:
                 print(terminated, truncated, dones)
+                total_reward=0
 
     # 환경 종료
     env.close()

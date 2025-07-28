@@ -73,13 +73,16 @@ MODEL_PATH = os.path.join(DIR_PATH, 'data/checkpoint/maskrcnn_ckpt/maskrcnn_trai
 NUM_CLASSES = 79  # 모델 구조는 학습 때와 동일해야 함
 CONFIDENCE_THRESHOLD = 0.5
 
+# YCB_OBJECT_CLASSES = sorted([
+#     '002_master_chef_can', '008_pudding_box', '014_lemon', '021_bleach_cleanser', '029_plate', '036_wood_block', '044_flat_screwdriver', '054_softball', '061_foam_brick', '065_c_cups', '065_i_cups', '072_b_toy_airplane', '073_c_lego_duplo',
+#     '003_cracker_box', '009_gelatin_box', '015_peach', '022_windex_bottle', '030_fork', '037_scissors', '048_hammer', '055_baseball', '062_dice', '065_d_cups', '065_j_cups', '072_c_toy_airplane', '073_d_lego_duplo',
+#     '004_sugar_box', '010_potted_meat_can', '016_pear', '024_bowl', '031_spoon', '038_padlock', '050_medium_clamp', '056_tennis_ball', '063_a_marbles', '065_e_cups', '070_a_colored_wood_blocks', '072_d_toy_airplane', '073_e_lego_duplo',
+#     '005_tomato_soup_can', '011_banana', '017_orange', '025_mug', '032_knife', '040_large_marker', '051_large_clamp', '057_racquetball', '063_b_marbles', '065_f_cups', '070_b_colored_wood_blocks', '072_e_toy_airplane', '073_f_lego_duplo',
+#     '006_mustard_bottle', '012_strawberry', '018_plum', '026_sponge', '033_spatula', '042_adjustable_wrench', '052_extra_large_clamp', '058_golf_ball', '065_a_cups', '065_g_cups', '071_nine_hole_peg_test', '073_a_lego_duplo', '073_g_lego_duplo',
+#     '007_tuna_fish_can', '013_apple', '019_pitcher_base', '028_skillet_lid', '035_power_drill', '043_phillips_screwdriver', '053_mini_soccer_ball', '059_chain', '065_b_cups', '065_h_cups', '072_a_toy_airplane', '073_b_lego_duplo', '077_rubiks_cube'
+# ])
 YCB_OBJECT_CLASSES = sorted([
-    '002_master_chef_can', '008_pudding_box', '014_lemon', '021_bleach_cleanser', '029_plate', '036_wood_block', '044_flat_screwdriver', '054_softball', '061_foam_brick', '065_c_cups', '065_i_cups', '072_b_toy_airplane', '073_c_lego_duplo',
-    '003_cracker_box', '009_gelatin_box', '015_peach', '022_windex_bottle', '030_fork', '037_scissors', '048_hammer', '055_baseball', '062_dice', '065_d_cups', '065_j_cups', '072_c_toy_airplane', '073_d_lego_duplo',
-    '004_sugar_box', '010_potted_meat_can', '016_pear', '024_bowl', '031_spoon', '038_padlock', '050_medium_clamp', '056_tennis_ball', '063_a_marbles', '065_e_cups', '070_a_colored_wood_blocks', '072_d_toy_airplane', '073_e_lego_duplo',
-    '005_tomato_soup_can', '011_banana', '017_orange', '025_mug', '032_knife', '040_large_marker', '051_large_clamp', '057_racquetball', '063_b_marbles', '065_f_cups', '070_b_colored_wood_blocks', '072_e_toy_airplane', '073_f_lego_duplo',
-    '006_mustard_bottle', '012_strawberry', '018_plum', '026_sponge', '033_spatula', '042_adjustable_wrench', '052_extra_large_clamp', '058_golf_ball', '065_a_cups', '065_g_cups', '071_nine_hole_peg_test', '073_a_lego_duplo', '073_g_lego_duplo',
-    '007_tuna_fish_can', '013_apple', '019_pitcher_base', '028_skillet_lid', '035_power_drill', '043_phillips_screwdriver', '053_mini_soccer_ball', '059_chain', '065_b_cups', '065_h_cups', '072_a_toy_airplane', '073_b_lego_duplo', '077_rubiks_cube'
+     '013_apple'
 ])
 CLASS_NAME = ['BACKGROUND'] + YCB_OBJECT_CLASSES
 
@@ -538,7 +541,7 @@ def main():
 
     # 카메라 인트린식(intrinsics)
     K = robot_camera.data.intrinsic_matrices.squeeze().cpu().numpy()
-
+    total_reward = 0
     # 시뮬레이션 루프
     while simulation_app.is_running():
         # 모델 추론 상태 - 학습 연산 비활성화
@@ -815,7 +818,7 @@ def main():
             tcp_rest_position = ee_frame_sensor.data.target_pos_w[..., 0, :].clone() - env.unwrapped.scene.env_origins
             tcp_rest_orientation = ee_frame_sensor.data.target_quat_w[..., 0, :].clone()
             ee_pose = torch.cat([tcp_rest_position, tcp_rest_orientation], dim=-1)
-
+            
             # state machine 을 통한 action 값 출력
             actions = pick_and_place_sm.compute(
                 ee_pose=ee_pose,
@@ -823,13 +826,21 @@ def main():
                 pregrasp_pose=pick_and_place_sm.pregrasp_pose,
                 robot_data=robot_data,
             )
+            
+            #print("grasp_pose = ", grasp_pose)
             print("actions = ", actions)
             # 환경에 대한 액션을 실행
             obs, rewards, terminated, truncated, info = env.step(actions)
-
+            robotstate = torch.cat([ee_pose, torch.tensor(obs["policy"][0, 7:9].tolist(), device=ee_pose.device).unsqueeze(0)], dim=-1)
+            #print(robotstate.shape)
+            # print("reward = ", rewards)
+            # print("total = ", total_reward)
+            
             # 시뮬레이션 종료 여부 체크
             dones = terminated | truncated
+            print("dones = ", dones)
             if dones:
+                total_reward=0
                 if terminated:
                     print("Episode terminated")
                 else:

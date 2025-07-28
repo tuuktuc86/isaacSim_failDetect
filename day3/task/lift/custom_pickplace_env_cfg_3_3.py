@@ -99,7 +99,7 @@ class ObjectTableSceneCfg(InteractiveSceneCfg):
         ycb_obj_usd_paths = glob.glob('data/assets/ycb_usd/ycb/*/final.usd')
 
         # YCB object 중 3가지 물체 random하게 설정
-        selected_ycb_obj_usd_paths = random.sample(ycb_obj_usd_paths, 3)
+        selected_ycb_obj_usd_paths = random.sample(ycb_obj_usd_paths, 1)
 
         # YCB object 놓을 위치 지정(카메라 view에 맞게)
         objects_position = [[0.4, 0.0, 0.6],
@@ -111,10 +111,12 @@ class ObjectTableSceneCfg(InteractiveSceneCfg):
 
             # 지정된 위치에서 일정 거리 내에 random하게 위치 재설정 (0.05 이내)
             # 물체가 안겹치게 생성되도록 z위치를 조금씩 다르게 설정하는 것이 좋음
+            # random_position = [objects_position[i][0] + random.random() * 0.05, 
+            #                    objects_position[i][1] + random.random() * 0.03, 
+            #                    objects_position[i][2] + 0.05 * i]
             random_position = [objects_position[i][0] + random.random() * 0.05, 
                                objects_position[i][1] + random.random() * 0.03, 
                                objects_position[i][2] + 0.05 * i]
-            
             # YCB object 경로를 절대 경로로 설정
             ycb_obj_usd_path = os.path.join(os.getcwd(), selected_ycb_obj_usd_paths[i])
 
@@ -156,6 +158,15 @@ class ObjectTableSceneCfg(InteractiveSceneCfg):
 class CommandsCfg:
     """MDP에 사용되는 명령어(command) 정의"""
 
+    # object_pose = mdp.UniformPoseCommandCfg(
+    #     asset_name="robot",
+    #     body_name="panda_hand",      # agent 환경에서 지정됨
+    #     resampling_time_range=(5.0, 5.0),
+    #     debug_vis=False,
+    #     ranges=mdp.UniformPoseCommandCfg.Ranges(
+    #         pos_x=(0.5, 0.5), pos_y=(-0.0, 0.0), pos_z=(0.525, 0.53), roll=(0.0, 0.0), pitch=(0.0, 0.0), yaw=(0.0, 0.0)
+    #     ),
+    # )
 
 @configclass
 class ActionsCfg:
@@ -169,6 +180,21 @@ class ActionsCfg:
 class ObservationsCfg:
     """MDP에 사용되는 관측(observation) 정의"""
 
+    @configclass
+    class PolicyCfg(ObsGroup):
+        """policy 네트워크 입력에 사용되는 관측 항목 그룹"""
+        joint_pos = ObsTerm(func=mdp.joint_pos_rel)
+        joint_vel = ObsTerm(func=mdp.joint_vel_rel)
+        object_position = ObsTerm(func=mdp.object_position_in_robot_root_frame)
+        # target_object_position = ObsTerm(func=mdp_3_1.generated_commands, params={"command_name": "object_pose"})
+        actions = ObsTerm(func=mdp.last_action)
+
+        def __post_init__(self):
+            self.enable_corruption = True
+            self.concatenate_terms = True
+
+    # 관측 그룹 등록
+    policy: PolicyCfg = PolicyCfg()
 
 @configclass
 class EventCfg:
@@ -179,7 +205,30 @@ class EventCfg:
 @configclass
 class RewardsCfg:
     """보상(reward) 항목 설정 - 강화학습 개발시 필요"""
+    # reaching_object = RewTerm(func=mdp.object_ee_distance, params={"std": 0.1}, weight=1.0)
 
+    # lifting_object = RewTerm(func=mdp.object_is_lifted, params={"minimal_height": 0.04}, weight=15.0)
+
+    # object_goal_tracking = RewTerm(
+    #     func=mdp.object_goal_distance,
+    #     params={"std": 0.3, "minimal_height": 0.04, "command_name": "object_pose"},
+    #     weight=16.0,
+    # )
+
+    # object_goal_tracking_fine_grained = RewTerm(
+    #     func=mdp.object_goal_distance,
+    #     params={"std": 0.05, "minimal_height": 0.04, "command_name": "object_pose"},
+    #     weight=5.0,
+    # )
+
+    # # action penalty
+    # action_rate = RewTerm(func=mdp.action_rate_l2, weight=-1e-4)
+
+    # joint_vel = RewTerm(
+    #     func=mdp.joint_vel_l2,
+    #     weight=-1e-4,
+    #     params={"asset_cfg": SceneEntityCfg("robot")},
+    # )
 
 @configclass
 class TerminationsCfg:
