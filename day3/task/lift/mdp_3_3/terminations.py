@@ -49,10 +49,10 @@ def object_pickplace_goal(
         각 환경(environment)별로 작업 완료 여부를 나타내는 boolean 값의 Tensor를 반환합니다.
         (True: 작업 완료, False: 작업 미완료)
     """
-    # 사용될 객체 추출
+    # 사용될 객체 추출(here)
     object_0: RigidObject = env.scene[object_0_cfg.name]
-    object_1: RigidObject = env.scene[object_1_cfg.name]
-    object_2: RigidObject = env.scene[object_2_cfg.name]
+    # object_1: RigidObject = env.scene[object_1_cfg.name]
+    # object_2: RigidObject = env.scene[object_2_cfg.name]
     bin: RigidObject = env.scene[bin_cfg.name]
     
     # 각 환경의 종료 여부를 저장할 리스트를 초기화
@@ -61,15 +61,16 @@ def object_pickplace_goal(
     for i in range(len(bin.data.root_pos_w)):
         # 목표 지점(bin)과 각 객체 사이의 수평(x, y축) 거리를 계산
         distance_0 = torch.norm(bin.data.root_pos_w[:, :2] - object_0.data.root_pos_w[:, :2], dim=1)
-        distance_1 = torch.norm(bin.data.root_pos_w[:, :2] - object_1.data.root_pos_w[:, :2], dim=1)
-        distance_2 = torch.norm(bin.data.root_pos_w[:, :2] - object_2.data.root_pos_w[:, :2], dim=1)
-        distances = [distance_0, distance_1, distance_2]
-
+        # distance_1 = torch.norm(bin.data.root_pos_w[:, :2] - object_1.data.root_pos_w[:, :2], dim=1)
+        # distance_2 = torch.norm(bin.data.root_pos_w[:, :2] - object_2.data.root_pos_w[:, :2], dim=1)
+        #distances = [distance_0, distance_1, distance_2]
+        distances = [distance_0]
         # 목표 지점(bin)과 각 객체 사이의 수직(z축) 높이 차이를 계산
         distance_0_z = torch.abs(bin.data.root_pos_w[:, 2] - object_0.data.root_pos_w[:, 2])
-        distance_1_z = torch.abs(bin.data.root_pos_w[:, 2] - object_1.data.root_pos_w[:, 2])
-        distance_2_z = torch.abs(bin.data.root_pos_w[:, 2] - object_2.data.root_pos_w[:, 2])
-        distances_z = [distance_0_z, distance_1_z, distance_2_z]
+        # distance_1_z = torch.abs(bin.data.root_pos_w[:, 2] - object_1.data.root_pos_w[:, 2])
+        # distance_2_z = torch.abs(bin.data.root_pos_w[:, 2] - object_2.data.root_pos_w[:, 2])
+        #distances_z = [distance_0_z, distance_1_z, distance_2_z]
+        distances_z = [distance_0_z]
 
         # 현재 환경의 종료 여부를 False로 초기화
         done = False

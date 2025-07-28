@@ -51,8 +51,8 @@ def object_pickplace_goal(
     """
     # 사용될 객체 추출
     object_0: RigidObject = env.scene[object_0_cfg.name]
-    object_1: RigidObject = env.scene[object_1_cfg.name]
-    object_2: RigidObject = env.scene[object_2_cfg.name]
+    # object_1: RigidObject = env.scene[object_1_cfg.name]
+    # object_2: RigidObject = env.scene[object_2_cfg.name]
     bin: RigidObject = env.scene[bin_cfg.name]
     
     # 각 환경의 종료 여부를 저장할 리스트를 초기화

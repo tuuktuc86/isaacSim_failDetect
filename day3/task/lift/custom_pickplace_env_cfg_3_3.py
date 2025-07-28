@@ -96,8 +96,8 @@ class ObjectTableSceneCfg(InteractiveSceneCfg):
         """환경 생성 후 자동으로 실행되는 추가 세팅 코드"""
 
         # YCB object들 전체 읽어오기
-        ycb_obj_usd_paths = glob.glob('data/assets/ycb_usd/ycb/*/final.usd')
-
+        # ycb_obj_usd_paths = glob.glob('data/assets/ycb_usd/ycb/*/final.usd')
+        ycb_obj_usd_paths= glob.glob('data/assets/ycb_usd/ycb/024_bowl/final.usd')
         # YCB object 중 3가지 물체 random하게 설정
         selected_ycb_obj_usd_paths = random.sample(ycb_obj_usd_paths, 1)
 
